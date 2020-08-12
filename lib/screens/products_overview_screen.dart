@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_complete_guide/widgets/app_drawer.dart';
-
 import 'package:flutter_complete_guide/widgets/products_grid.dart';
 import 'package:flutter_complete_guide/widgets/badge.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_complete_guide/models/cart.dart';
 import 'package:flutter_complete_guide/screens/cart_screen.dart';
+import 'package:flutter_complete_guide/models/products.dart';
 
 enum selectedChoice { favorites, all }
 
@@ -16,6 +16,24 @@ class ProductsOverviewScreen extends StatefulWidget {
 
 class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
   var selectedValue = false;
+  var _isInit = true;
+  var _isLoaded = false;
+
+  @override
+  void didChangeDependencies() {
+    if (_isInit) {
+      setState(() {
+        _isLoaded = true;
+      });
+      Provider.of<Products>(context).fetchAndSetProducts().then((_) {
+        setState(() {
+          _isLoaded = false;
+        });
+      });
+    }
+    _isInit = false;
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +78,11 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
         ],
       ),
       drawer: MainDrawer(),
-      body: ProductsGrid(selectedValue),
+      body: _isLoaded
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : ProductsGrid(selectedValue),
     );
   }
 }
